@@ -3,7 +3,7 @@
 an illustration of eating a cake of finite and known size
 """
 
-using JuMP,Ipopt;
+using JuMP,Ipopt,Plots,ReSHOP;
 
 function non_renewable_resource()
 
@@ -14,7 +14,12 @@ function non_renewable_resource()
     S0 = 2.0;       # size of cake
     γ = 1.5;        # elasticity of substitution
 
-    model = Model(Ipopt.Optimizer)
+    #model = Model(Ipopt.Optimizer)
+    model = direct_model(ReSHOP.Optimizer(solver="knitro"))
+    #model = Model(optimizer_with_attributes(ReSHOP.Optimizer, "solver"=>"KNITRO"))
+    #model = Model(() -> ReSHOP.Optimizer(solver="knitro"))
+    #model = Model(optimizer_with_attributes(ReSHOP.Optimizer, "solver"=>"pathnlp"))
+
     @variable(model, x[t=1:T]>=0)
     @variable(model, S[t=1:(T+1)]>=0)
     @constraint(model, [t=1:T], S[t+1] == - x[t] + S[t] )
@@ -27,6 +32,7 @@ function non_renewable_resource()
     return(x,S)
 end
 
-x,S = non_renewable_resource()
+@time x,S = non_renewable_resource()
 
-[S x]
+gr()
+plot(S,x)
